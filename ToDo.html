@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="description" content="TODO-App zur Verwaltung von Aufgaben mit Priorität und Fortschritt">
+  <title>TODO App</title>
+  <style>
+     /*Responsiveness */
+    @media (max-width: 600px) {
+      main {
+        padding: 0.5rem;
+      }
+      input, select, textarea, button {
+        font-size: 0.9rem;
+      }
+      .todo-item {
+        padding: 0.8rem;
+      }
+    }
+    /* --- GLOBAL --- */
+    body {
+      font-family: 'Segoe UI', sans-serif; /* Moderne, gut lesbare Schriftart */
+      margin: 0; /* Kein Rand um den Body */
+      padding: 0; /* Kein Innenabstand */
+      background: #eef1f5; /* Heller Hintergrund für gute Lesbarkeit */
+      color: #333; /* Dunkle Textfarbe */
+    }
+    header {
+      background: #0056b3; /* Blauer Hintergrund für Header */
+      color: #fff; /* Weiße Schrift im Header */
+      padding: 1rem; /* Innenabstand im Header */
+      text-align: center; /* Text zentriert */
+      box-shadow: 0 2px 5px rgba(0,0,0,0.2); /* Schattierung für Tiefe */
+    }
+    main {
+      max-width: 720px; /* Maximale Breite für bessere Lesbarkeit */
+      margin: 2rem auto; /* Zentrierung horizontal */
+      padding: 1rem; /* Innenabstand */
+    }
+
+    /* --- FORMULAR --- */
+    #todoForm {
+      background: #fff; /* Weißer Hintergrund für das Formular */
+      padding: 2rem; /* Großer Innenabstand für Klarheit */
+      border-radius: 8px; /* Abgerundete Ecken */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Sanfte Schatten für moderne Optik */
+    }
+    #todoForm h2 {
+      margin-top: 0; /* Kein Abstand nach oben */
+      margin-bottom: 1rem; /* Abstand nach unten */
+      color: #0056b3; /* Gleiche Farbe wie Header */
+    }
+    label {
+      display: block; /* Neue Zeile für jedes Label */
+      margin: 0.8rem 0 0.3rem; /* Abstand oben und unten */
+      font-weight: 600; /* Fetter Text */
+    }
+    .checkbox-label {
+      display: flex; /* Flexbox zur Positionierung von Text und Checkbox */
+      justify-content: space-between; /* Abstand zwischen Text und Checkbox */
+      align-items: center; /* Vertikale Ausrichtung */
+      margin: 0.5rem 0; /* Vertikaler Abstand */
+      padding: 0.3rem 0; /* Innenabstand oben/unten */
+      font-weight: 600; /* Fetter Text */
+    }
+    input[type="text"],
+    input[type="date"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%; /* Volle Breite für Eingaben */
+      padding: 0.6rem; /* Innenabstand */
+      border: 1px solid #ccc; /* Grauer Rahmen */
+      border-radius: 5px; /* Leicht abgerundete Ecken */
+      font-size: 1rem; /* Gut lesbare Schrift */
+      box-sizing: border-box; /* Padding in Breite einberechnet */
+    }
+    input:focus,
+    select:focus,
+    textarea:focus {
+      outline: none; /* Keine Standardumrandung */
+      border-color: #0056b3; /* Blaue Linie bei Fokus */
+      box-shadow: 0 0 5px rgba(0,86,179,0.3); /* Leichter blauer Schatten */
+    }
+    button[type="submit"] {
+      display: block; /* Auf neue Zeile */
+      margin-top: 1.5rem; /* Abstand nach oben */
+      background: #0056b3; /* Blau */
+      color: #fff; /* Weißer Text */
+      padding: 0.8rem 1.5rem; /* Innenabstand */
+      border: none; /* Kein Rahmen */
+      border-radius: 5px; /* Abgerundete Ecken */
+      font-size: 1rem; /* Schriftgröße */
+      cursor: pointer; /* Zeigt Maushand bei Hover */
+      width: 100%; /* Ganze Breite */
+    }
+    button[type="submit"]:hover {
+      background: #00449e; /* Dunkleres Blau bei Hover */
+    }
+    .info {
+      margin-top: 1rem; /* Abstand nach oben */
+      background: #e0f0ff; /* Hellblauer Kasten */
+      padding: 0.8rem; /* Innenabstand */
+      border-left: 4px solid #007BFF; /* Farblicher Balken links */
+      border-radius: 4px; /* Leichte Rundung */
+    }
+
+    /* --- SUCHFELD --- */
+    #searchContainer {
+      margin: 2rem 0 1rem; /* Abstand oben/unten */
+      background: #ffffff; /* Weißer Hintergrund */
+      padding: 1rem; /* Innenabstand */
+      border-radius: 8px; /* Rundung */
+      box-shadow: 0 1px 6px rgba(0, 0, 0, 0.1); /* Schatteneffekt */
+    }
+    #searchInput {
+      width: 100%; /* Volle Breite */
+      padding: 0.6rem; /* Innenabstand */
+      font-size: 1rem; /* Größe */
+      border: 1px solid #ccc; /* Rahmen */
+      border-radius: 5px; /* Ecken */
+    }
+
+    /* --- TODO-CARDS --- */
+    .todo-item {
+      background: #fff; /* Weißer Hintergrund */
+      padding: 1rem; /* Innenabstand */
+      margin: 1.2rem 0; /* Vertikaler Abstand */
+      border-radius: 8px; /* Rundung */
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1); /* Schatten */
+      position: relative; /* für absolut positionierte Buttons */
+    }
+    .todo-item h3 {
+      margin: 0 0 0.5rem; /* Abstand unten */
+      color: #0056b3; /* Titel in Blau */
+    }
+    .priority {
+      font-weight: bold; /* Fetter Text */
+    }
+    .priority-soforterledigen { color: red; } /* Dringend */
+    .priority-einplanenundwohlfuehlen { color: orange; } /* Wichtig */
+    .priority-gibesab { color: teal; } /* Dringend, aber nicht wichtig */
+    .priority-wegdamit { color: gray; } /* Unwichtig */
+    .delete-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: #dc3545; /* Rot für Löschen */
+      border: none;
+      color: #fff;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .delete-btn:hover {
+      background: #a71d2a; /* Dunkleres Rot */
+    }
+    .edit-btn, .save-btn {
+      position: absolute;
+      top: 1rem;
+      right: 3.2rem; /* Links neben Löschen */
+      background: #ffc107; /* Gelb */
+      border: none;
+      color: #000;
+      padding: 6px 10px;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .edit-btn:hover {
+      background: #e0a800; /* Dunkleres Gelb */
+    }
+    .save-btn {
+      display: block; /* Neue Zeile */
+      width: 100%; /* Volle Breite */
+      margin-top: 1rem;
+      padding: 10px;
+      background: #28a745; /* Grün für Speichern */
+      color: white;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      position: static; /* Wichtig für responsive Layout */
+      font-size: 1rem;
+    }
+    .save-btn:hover {
+      background: #1e7e34; /* Dunkleres Grün */
+    }
+    progress {
+      width: 100%; /* Fortschrittsbalken über ganze Breite */
+      height: 12px; /* Höhe */
+      border-radius: 6px;
+      appearance: none; /* Entfernt Browser-Standard */
+    }
+    progress::-webkit-progress-bar {
+      background: #eee; /* Hintergrundfarbe */
+      border-radius: 6px;
+    }
+    progress::-webkit-progress-value {
+      background: #007BFF; /* Fortschrittsfarbe */
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body>
+  <!-- Kopfzeile mit Titel -->
+  <header>
+    <h1>TODO Manager</h1> <!-- Überschrift der Seite -->
+  </header>
+
+  <!-- Hauptbereich der Seite -->
+  <main>
+    <!-- Formular zum Hinzufügen eines neuen TODOs -->
+    <form id="todoForm"> <!-- Formular-Tag mit ID -->
+      <h2>Neues TODO erfassen</h2> <!-- Abschnittsüberschrift -->
+
+      <label for="title">Titel *</label> <!-- Pflichtfeld für Titel -->
+      <input type="text" id="title" maxlength="255" required> <!-- Texteingabe mit max. 255 Zeichen -->
+
+      <label class="checkbox-label">
+        <span>Event (Task wenn aus)</span> <!-- Beschriftung für Checkbox -->
+        <input type="checkbox" id="isEvent"> <!-- Checkbox für Event-Typ -->
+      </label>
+
+      <label for="description">Beschreibung</label> <!-- Beschreibungstextfeld -->
+      <textarea id="description" rows="3"></textarea> <!-- Textarea für Beschreibung -->
+
+      <label for="author">Autor *</label> <!-- Pflichtfeld für Autor -->
+      <input type="text" id="author" maxlength="20" required> <!-- Eingabe auf 20 Zeichen begrenzt -->
+
+      <label for="category">Kategorie *</label> <!-- Pflichtfeld Dropdown-Auswahl -->
+      <select id="category" required>
+        <option value="">Bitte wählen</option> <!-- Platzhalteroption -->
+        <option value="Sport">Sport</option> <!-- Auswahlmöglichkeit Sport -->
+        <option value="Reisen">Reisen</option> <!-- Auswahlmöglichkeit Reisen -->
+        <option value="Arbeit">Arbeit</option> <!-- Auswahlmöglichkeit Arbeit -->
+        <option value="Haushalt">Haushalt</option> <!-- Auswahlmöglichkeit Haushalt -->
+        <option value="Schule">Schule</option> <!-- Auswahlmöglichkeit Schule -->
+      </select>
+
+      <label class="checkbox-label">
+        <span>Wichtig</span> <!-- Beschriftung für Wichtigkeit -->
+        <input type="checkbox" id="isImportant"> <!-- Checkbox Wichtigkeit -->
+      </label>
+
+      <label class="checkbox-label">
+        <span>Dringend</span> <!-- Beschriftung für Dringlichkeit -->
+        <input type="checkbox" id="isUrgent"> <!-- Checkbox Dringlichkeit -->
+      </label>
+
+      <label for="startDate">Startdatum</label> <!-- Label für Startdatum -->
+      <input type="date" id="startDate"> <!-- Eingabefeld für Startdatum -->
+
+      <label for="endDate">Enddatum</label> <!-- Label für Enddatum -->
+      <input type="date" id="endDate"> <!-- Eingabefeld für Enddatum -->
+
+      <label for="progress">Erledigt in % (0–100)</label> <!-- Fortschrittsanzeige -->
+      <input type="number" id="progress" min="0" max="100" value="0"> <!-- Eingabe Fortschritt -->
+
+      <div class="info">
+        Priorität: <strong id="priorityDisplay">–</strong> <!-- Anzeige der Priorität -->
+      </div>
+
+      <button type="submit">Speichern</button> <!-- Absenden-Button -->
+    </form>
+
+    <!-- Suchfeld -->
+    <div id="searchContainer">
+      <label for="searchInput">TODO suchen:</label> <!-- Label für Suchfeld -->
+      <input type="text" id="searchInput" placeholder="Nach Titel suchen..."> <!-- Eingabefeld für Suche -->
+    </div>
+
+    <!-- Liste der TODOs -->
+    <section id="todoList">
+      <h2>Meine TODOs</h2> <!-- Überschrift für Liste -->
+    </section>
+  </main>
+
+  <!-- JavaScript-Logik -->
+  <script>
+    const form = document.getElementById('todoForm'); // Referenz auf das Formular
+    const todoList = document.getElementById('todoList'); // Bereich für Anzeige
+    const priorityDisplay = document.getElementById('priorityDisplay'); // Prioritätsanzeige
+
+    function calculatePriority(imp, urg) {
+      // Berechnung der Priorität je nach Wichtigkeit und Dringlichkeit
+      if (imp && urg) return "Sofort erledigen";
+      if (imp && !urg) return "Einplanen und Wohlfühlen";
+      if (!imp && urg) return "Gib es ab";
+      return "Weg damit";
+    }
+
+    function updatePriority() {
+      // Aktualisiert die Priorität live im Formular
+      const imp = document.getElementById('isImportant').checked;
+      const urg = document.getElementById('isUrgent').checked;
+      priorityDisplay.textContent = calculatePriority(imp, urg);
+    }
+
+    document.getElementById('isImportant').addEventListener('change', updatePriority); // Reaktion auf Änderung
+    document.getElementById('isUrgent').addEventListener('change', updatePriority);
+
+    function displayTodos(filter = "") {
+      // Lädt und zeigt alle Todos, gefiltert nach Titel
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      const container = document.getElementById('todoList');
+      container.innerHTML = '<h2>Meine TODOs</h2>';
+
+      todos.forEach((todo, i) => {
+        if (!todo.title.toLowerCase().includes(filter.toLowerCase())) return;
+        
+        const card = document.createElement('div');
+        card.setAttribute('data-id', i); // Damit wir später wissen, welches TODO das ist
+        card.className = 'todo-item';
+        const cls = 'priority-' + todo.priority.toLowerCase().replace(/ /g, '');
+        card.innerHTML = `
+          <button class="delete-btn" onclick="deleteTodo(${i})">🗑️</button>
+          <button class="edit-btn" onclick="editTodo(${i})">✏️</button>
+          <h3>${todo.title}</h3>
+          <p><strong>Kategorie:</strong> ${todo.category} &nbsp;|&nbsp; 
+             <strong>Event:</strong> ${todo.isEvent ? '✔️' : '❌'}</p>
+          <p><strong>Autor:</strong> ${todo.author}</p>
+          <p><strong>Beschreibung:</strong> ${todo.description || '–'}</p>
+          <p><strong>Zeitraum:</strong> ${todo.startDate || '–'} bis ${todo.endDate || '–'}</p>
+          <p><strong>Wichtig:</strong> ${todo.isImportant ? '✔️' : '–'} &nbsp;|&nbsp; 
+             <strong>Dringend:</strong> ${todo.isUrgent ? '✔️' : '–'}</p>
+          <div style="margin:0.5rem 0;">
+            <label>Fortschritt:</label>
+            <progress value="${todo.progress}" max="100"></progress>
+            <span>${todo.progress}%</span>
+          </div>
+          <p class="priority ${cls}">Priorität: ${todo.priority}</p>
+        `;
+        container.appendChild(card);
+      });
+      if (!found) {
+        const p = document.createElement('p');
+        p.textContent = "Keine TODOs vorhanden.";
+        container.appendChild(p);
+      }
+    }
+
+    function deleteTodo(i) {
+      // Löscht einen Todo-Eintrag
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      todos.splice(i, 1);
+      localStorage.setItem('todos', JSON.stringify(todos));
+      displayTodos(document.getElementById('searchInput').value);
+    }
+
+    function editTodo(i) {
+      // Zeigt Eingabefelder zum Bearbeiten
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      const t = todos[i];
+      const card = document.querySelector(`.todo-item[data-id='${i}']`); //für suchmaschine
+
+
+      card.innerHTML = `
+        <h3><input type="text" id="edit-title-${i}" value="${t.title}"></h3>
+        <p><strong>Kategorie:</strong> <input type="text" id="edit-category-${i}" value="${t.category}"></p>
+        <p><strong>Event:</strong> <input type="checkbox" id="edit-event-${i}" ${t.isEvent ? 'checked' : ''}></p>
+        <p><strong>Autor:</strong> <input type="text" id="edit-author-${i}" value="${t.author}"></p>
+        <p><strong>Beschreibung:</strong> <textarea id="edit-description-${i}">${t.description}</textarea></p>
+        <p><strong>Zeitraum:</strong> 
+           <input type="date" id="edit-start-${i}" value="${t.startDate}"> bis 
+           <input type="date" id="edit-end-${i}" value="${t.endDate}">
+        </p>
+        <p><strong>Wichtig:</strong> <input type="checkbox" id="edit-important-${i}" ${t.isImportant ? 'checked' : ''}>
+           &nbsp;&nbsp; <strong>Dringend:</strong> <input type="checkbox" id="edit-urgent-${i}" ${t.isUrgent ? 'checked' : ''}>
+        </p>
+        <p><strong>Fortschritt %:</strong> <input type="number" id="edit-progress-${i}" value="${t.progress}" min="0" max="100"></p>
+        <button class="save-btn" onclick="saveTodo(${i})">💾</button>
+      `;
+    }
+
+    function saveTodo(i) {
+      // Speichert bearbeiteten Todo
+      const todos = JSON.parse(localStorage.getItem('todos')) || []; 
+      // Holt die gespeicherten TODOs aus dem localStorage (als Array) 
+      // oder erstellt ein leeres Array, falls noch nichts gespeichert ist
+
+      const progressValue = parseInt(document.getElementById(`edit-progress-${i}`).value); 
+      // Liest den Wert aus dem Fortschrittsfeld des bearbeiteten TODOs und wandelt ihn in eine Ganzzahl um
+
+      if (isNaN(progressValue) || progressValue < 0 || progressValue > 100) { 
+      // Prüft, ob der Fortschrittswert ungültig ist (z. B. kein Zahl, kleiner als 0 oder größer als 100)
+
+        alert("Fortschritt muss zwischen 0 und 100 liegen."); 
+        // Zeigt eine Warnmeldung, wenn der Wert ungültig ist
+
+        return; 
+        // Bricht die Funktion ab – das Speichern wird nicht durchgeführt
+      }
+
+      const t = {
+        title: document.getElementById(`edit-title-${i}`).value,
+        category: document.getElementById(`edit-category-${i}`).value,
+        isEvent: document.getElementById(`edit-event-${i}`).checked,
+        author: document.getElementById(`edit-author-${i}`).value,
+        description: document.getElementById(`edit-description-${i}`).value,
+        startDate: document.getElementById(`edit-start-${i}`).value,
+        endDate: document.getElementById(`edit-end-${i}`).value,
+        isImportant: document.getElementById(`edit-important-${i}`).checked,
+        isUrgent: document.getElementById(`edit-urgent-${i}`).checked,
+        progress: progressValue
+      };
+      t.priority = calculatePriority(t.isImportant, t.isUrgent);
+      todos[i] = t;
+      localStorage.setItem('todos', JSON.stringify(todos));
+      displayTodos(document.getElementById('searchInput').value);
+    }
+
+    form.addEventListener('submit', e => {
+      // Fügt neuen Todo-Eintrag hinzu
+      e.preventDefault();
+      const t = document.getElementById('title').value.trim();
+      const ev = document.getElementById('isEvent').checked;
+      const d = document.getElementById('description').value.trim();
+      const a = document.getElementById('author').value.trim();
+      const c = document.getElementById('category').value;
+      const imp = document.getElementById('isImportant').checked;
+      const urg = document.getElementById('isUrgent').checked;
+      const sd = document.getElementById('startDate').value;
+      const ed = document.getElementById('endDate').value;
+      const p = parseInt(document.getElementById('progress').value, 10);
+      if (!t || !a || !c || p < 0 || p > 100) {
+        alert('Bitte gültige Daten eingeben!');
+        return;
+      }
+      const pr = calculatePriority(imp, urg);
+      const todos = JSON.parse(localStorage.getItem('todos')) || [];
+      todos.push({ title: t, isEvent: ev, description: d, author: a, category: c, isImportant: imp, isUrgent: urg, startDate: sd, endDate: ed, progress: p, priority: pr });
+      localStorage.setItem('todos', JSON.stringify(todos));
+      form.reset();
+      priorityDisplay.textContent = '–';
+      displayTodos(document.getElementById('searchInput').value);
+    });
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      // Live-Suche bei Eingabe
+      displayTodos(e.target.value);
+    });
+
+    displayTodos(); // Startanzeige beim Laden der Seite
+  </script>
+</body>
+</html>
